@@ -20,7 +20,6 @@ def ptqrlogin(qrsig, pt_login_sig):
 
     return requests.get(url + param, headers=headers).text
 
-
 session = requests.Session()
 session.headers.update({'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0"})
 
@@ -31,7 +30,7 @@ pt_login_sig = session.cookies.get('pt_login_sig')
 t = random.random()
 url = "https://xui.ptlogin2.qq.com/ssl/ptqrshow?"
 param = f"appid=715030901&e=2&l=M&s=3&d=72&v=4&t={t}&daid=73&pt_3rd_aid=0&u1=https://qun.qq.com/"
-data = session.get(url + param)
+data = session.get(url + param) #可以将二维码保存在本地扫描
 
 qrsig = session.cookies.get('qrsig')
 
