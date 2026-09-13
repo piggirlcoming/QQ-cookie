@@ -1,12 +1,34 @@
 import requests, random, time
 
-def ptqrlogin(qrsig, pt_login_sig):
+def ptqrshow():
+    #获取二维码url
+    t = random.random()
+    url = "https://xui.ptlogin2.qq.com/ssl/ptqrshow?"
+    param = f"appid=715030901&e=2&l=M&s=3&d=72&v=4&t={t}&daid=73&pt_3rd_aid=0&u1=https://qun.qq.com/"
+
+    #取回cookie
+    session = requests.Session()
+    session.headers.update({'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0"})
+    session.get(url + param)
+    qrsig = session.cookies.get('qrsig')
+    return {
+        "url": url + param,
+        'qrsig': qrsig
+    }
+
+def ptqrlogin(qrsig):
+    #验证部分
     def hash33(s):
         h = 0
         for c in s:
             h += (h << 5) + ord(c)
             h &= 0x7fffffff
         return h
+
+    session = requests.Session()
+    session.headers.update({'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0"})
+    session.get("https://xui.ptlogin2.qq.com/cgi-bin/xlogin?appid=715030901&target=self&style=40&s_url=https://qun.qq.com/")
+    pt_login_sig = session.cookies.get('pt_login_sig')
 
     ptqrtoken = hash33(qrsig)
     action = f"0-0-{int(time.time() * 1000)}"
@@ -16,24 +38,14 @@ def ptqrlogin(qrsig, pt_login_sig):
 
     headers = {
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0",
+        'Cookie': f"qrsig={qrsig}"
     }
 
     return requests.get(url + param, headers=headers).text
 
-session = requests.Session()
-session.headers.update({'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0"})
-
-# 取回pt_login_sig(这个是新加的) 可以选择固定, 应该吧
-session.get("https://xui.ptlogin2.qq.com/cgi-bin/xlogin?appid=715030901&target=self&style=40&s_url=https://qun.qq.com/")
-pt_login_sig = session.cookies.get('pt_login_sig')
-
-t = random.random()
-url = "https://xui.ptlogin2.qq.com/ssl/ptqrshow?"
-param = f"appid=715030901&e=2&l=M&s=3&d=72&v=4&t={t}&daid=73&pt_3rd_aid=0&u1=https://qun.qq.com/"
-data = session.get(url + param) #可以将二维码保存在本地扫描
-
-qrsig = session.cookies.get('qrsig')
+data = ptqrshow()
+qrsig = data['qrsig']
 
 while True:
-    print(ptqrlogin(session, qrsig, pt_login_sig))
+    print(ptqrlogin(qrsig))
     time.sleep(2)
